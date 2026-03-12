@@ -276,9 +276,16 @@ export default function MindArFace() {
       />
 
       <div
-        ref={containerRef}
-        style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}
-      >
+      ref={containerRef}
+      style={{
+        width: '100dvw',
+        height: '100dvh',
+        overflow: 'hidden',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+      }}
+    >
         {ready ? (
           scene
         ) : (

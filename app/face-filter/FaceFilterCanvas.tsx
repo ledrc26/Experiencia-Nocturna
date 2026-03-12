@@ -11,6 +11,10 @@ import {
 } from '@zappar/zappar-react-three-fiber';
 import * as THREE from 'three';
 
+const ZapparCanvasWithChildren = ZapparCanvas as React.ComponentType<
+  React.PropsWithChildren<{ gl?: Record<string, unknown> }>
+>;
+
 function ButterflyFilterModel() {
   const group = useRef<THREE.Group>(null);
   const { scene, animations } = useGLTF('/filter_butterflies.glb');
@@ -189,7 +193,7 @@ export default function FaceFilterCanvas() {
         position: 'relative',
       }}
     >
-      <ZapparCanvas gl={{ preserveDrawingBuffer: true } as any}>
+      <ZapparCanvasWithChildren gl={{ preserveDrawingBuffer: true }}>
         <ZapparCamera userFacing userCameraMirrorMode="poses" />
 
         <ambientLight intensity={1.2} />
@@ -204,7 +208,7 @@ export default function FaceFilterCanvas() {
             {faceDetected && <ButterflyFilterModel />}
           </Suspense>
         </FaceTracker>
-      </ZapparCanvas>
+      </ZapparCanvasWithChildren>
 
       <CaptureButton isSaving={isSaving} onCapture={handleCapture} />
     </main>
