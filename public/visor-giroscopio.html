@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <title>Enjambre AR - Estático y Frontal</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.0.0/dist/aframe-extras.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background-color: #000;
+        font-family: sans-serif;
+      }
+
+      #ui-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        text-align: center;
+        transition: opacity 0.5s ease;
+      }
+
+      #btn-iniciar {
+        padding: 15px 40px;
+        font-size: 20px;
+        font-weight: bold;
+        border-radius: 30px;
+        background: white;
+        color: black;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      }
+
+      #textos {
+        display: none;
+      }
+    </style>
+  </head>
+  <body style="margin: 0; overflow: hidden">
+    <div id="ui-layer">
+      <button id="btn-iniciar">Iniciar Escaneo</button>
+      <div id="textos">
+        <h2 id="mensaje">Apunta hacia la pista de baile...</h2>
+        <h1 id="contador" style="font-size: 80px; margin: 10px 0">4</h1>
+      </div>
+    </div>
+
+    <a-scene
+      embedded
+      arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;"
+      vr-mode-ui="enabled: false"
+    >
+      <a-entity id="pivote-enjambre" visible="false">
+        <a-entity>
+          <a-entity
+            gltf-model="/mariposas5.glb"
+            scale="0.8 0.8 0.8"
+            position="0 0 -3"
+            animation-mixer
+          ></a-entity>
+          <a-entity
+            gltf-model="/mariposas5.glb"
+            scale="0.5 0.5 0.5"
+            position="3 0 -4"
+            rotation="0 -45 0"
+            animation-mixer
+          ></a-entity>
+          <a-entity
+            gltf-model="/mariposas5.glb"
+            scale="0.6 0.6 0.6"
+            position="-2.5 0 -3.5"
+            rotation="0 45 0"
+            animation-mixer
+          ></a-entity>
+          <a-entity
+            gltf-model="/mariposas5.glb"
+            scale="1 1 1"
+            position="0 0 -5"
+            rotation="0 180 0"
+            animation-mixer
+          ></a-entity>
+        </a-entity>
+      </a-entity>
+
+      <a-camera
+        id="camara-usuario"
+        position="0 1.6 0"
+        look-controls="enabled: true"
+      ></a-camera>
+    </a-scene>
+
+    <script>
+      const btn = document.getElementById("btn-iniciar");
+      const textos = document.getElementById("textos");
+      const ui = document.getElementById("ui-layer");
+      const contadorEl = document.getElementById("contador");
+      const mensajeEl = document.getElementById("mensaje");
+
+      const pivote = document.getElementById("pivote-enjambre");
+      const camara = document.getElementById("camara-usuario");
+
+      btn.addEventListener("click", () => {
+        if (
+          typeof DeviceOrientationEvent !== "undefined" &&
+          typeof DeviceOrientationEvent.requestPermission === "function"
+        ) {
+          DeviceOrientationEvent.requestPermission()
+            .then((permissionState) => {
+              if (permissionState === "granted") arrancarContador();
+              else alert("Se necesita acceso al giroscopio.");
+            })
+            .catch(console.error);
+        } else {
+          arrancarContador();
+        }
+      });
+
+      function arrancarContador() {
+        btn.style.display = "none";
+        textos.style.display = "block";
+
+        let cont = 4;
+        const intervalo = setInterval(() => {
+          cont--;
+          contadorEl.innerText = cont;
+
+          if (cont === 0) {
+            clearInterval(intervalo);
+
+            // --- LA MATEMÁTICA EXACTA DE THREE.JS ---
+            // 1. Extraemos los datos crudos del motor 3D, no del HTML
+            let euler = new THREE.Euler(0, 0, 0, "YXZ");
+            euler.setFromQuaternion(camara.object3D.quaternion);
+
+            // 1. Calculamos el giro (Izquierda / Derecha)
+            let gradosY = THREE.MathUtils.radToDeg(euler.y);
+
+            // 2. NUEVO: Calculamos la inclinación (Arriba / Abajo)
+            let gradosX = THREE.MathUtils.radToDeg(euler.x);
+
+            // 3. Aplicamos AMBOS ejes al pivote de las mariposas
+            pivote.setAttribute("rotation", `${gradosX + 10} ${gradosY} 0`);
+
+            pivote.setAttribute("visible", "true");
+
+            mensajeEl.innerText = "¡Las mariposas han sido liberadas!";
+            contadorEl.style.display = "none";
+
+            setTimeout(() => {
+              ui.style.opacity = "0";
+              setTimeout(() => {
+                ui.style.display = "none";
+              }, 500);
+            }, 2000);
+          }
+        }, 1000);
+      }
+    </script>
+  </body>
+</html>
