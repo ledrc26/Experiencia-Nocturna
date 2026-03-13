@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
-import Script from 'next/script';
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
+import Script from "next/script";
 
 function CaptureButton({
   isSaving,
@@ -11,7 +11,7 @@ function CaptureButton({
   isSaving: boolean;
   onCapture: () => void;
 }) {
-  if (typeof document === 'undefined') return null;
+  if (typeof document === "undefined") return null;
 
   return createPortal(
     <button
@@ -28,28 +28,28 @@ function CaptureButton({
       }}
       disabled={isSaving}
       style={{
-        position: 'fixed',
+        position: "fixed",
         bottom: 24,
-        left: '50%',
-        transform: 'translateX(-50%)',
+        left: "50%",
+        transform: "translateX(-50%)",
         zIndex: 2147483647,
-        border: 'none',
+        border: "none",
         borderRadius: 999,
-        padding: '14px 22px',
+        padding: "14px 22px",
         fontSize: 16,
         fontWeight: 600,
-        background: '#ffffff',
-        color: '#111111',
-        boxShadow: '0 8px 30px rgba(0,0,0,0.25)',
-        cursor: isSaving ? 'not-allowed' : 'pointer',
-        pointerEvents: 'auto',
-        touchAction: 'manipulation',
-        WebkitTapHighlightColor: 'transparent',
+        background: "#ffffff",
+        color: "#111111",
+        boxShadow: "0 8px 30px rgba(0,0,0,0.25)",
+        cursor: isSaving ? "not-allowed" : "pointer",
+        pointerEvents: "auto",
+        touchAction: "manipulation",
+        WebkitTapHighlightColor: "transparent",
       }}
     >
-      {isSaving ? 'Guardando...' : 'Tomar foto'}
+      {isSaving ? "Guardando..." : "Tomar foto"}
     </button>,
-    document.body
+    document.body,
   );
 }
 
@@ -70,34 +70,34 @@ export default function MindArFace() {
         if (!container) return resolve(null);
 
         // El <video> es el feed crudo de la cámara (MindAR lo crea internamente)
-        const video = container.querySelector<HTMLVideoElement>('video');
+        const video = container.querySelector<HTMLVideoElement>("video");
 
         // A-Frame crea exactamente un <canvas> para el renderer de Three.js
-        const glCanvas = container.querySelector<HTMLCanvasElement>('canvas');
+        const glCanvas = container.querySelector<HTMLCanvasElement>("canvas");
 
         if (!glCanvas) {
-          alert('No se encontró el canvas de A-Frame.');
+          alert("No se encontró el canvas de A-Frame.");
           return resolve(null);
         }
 
         // Forzar un render sincrónico del renderer de A-Frame
         // para que los píxeles AR estén disponibles en el canvas WebGL
         try {
-          const sceneEl = container.querySelector('a-scene') as any;
+          const sceneEl = container.querySelector("a-scene") as any;
           if (sceneEl?.renderer && sceneEl?.object3D && sceneEl?.camera) {
             sceneEl.renderer.render(sceneEl.object3D, sceneEl.camera);
           }
         } catch (e) {
-          console.warn('No se pudo forzar render manual:', e);
+          console.warn("No se pudo forzar render manual:", e);
         }
 
         const w = glCanvas.width || 1280;
         const h = glCanvas.height || 720;
 
-        const composite = document.createElement('canvas');
+        const composite = document.createElement("canvas");
         composite.width = w;
         composite.height = h;
-        const ctx = composite.getContext('2d');
+        const ctx = composite.getContext("2d");
 
         if (!ctx) return resolve(null);
 
@@ -116,17 +116,17 @@ export default function MindArFace() {
         try {
           ctx.drawImage(glCanvas, 0, 0, w, h);
         } catch (e) {
-          console.warn('No se pudo componer el canvas WebGL:', e);
+          console.warn("No se pudo componer el canvas WebGL:", e);
         }
 
-        composite.toBlob((blob) => resolve(blob), 'image/png');
+        composite.toBlob((blob) => resolve(blob), "image/png");
       });
     });
   }, []);
 
   const downloadBlob = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
@@ -143,29 +143,29 @@ export default function MindArFace() {
 
       const blob = await getCompositeBlob();
       if (!blob) {
-        alert('No fue posible capturar la imagen.');
+        alert("No fue posible capturar la imagen.");
         return;
       }
 
       const fileName = `face-filter-${Date.now()}.png`;
-      const file = new File([blob], fileName, { type: 'image/png' });
+      const file = new File([blob], fileName, { type: "image/png" });
 
       if (
-        'canShare' in navigator &&
+        "canShare" in navigator &&
         navigator.canShare?.({ files: [file] }) &&
-        'share' in navigator
+        "share" in navigator
       ) {
         await (navigator as any).share({
           files: [file],
-          title: 'Mi foto con filtro AR',
-          text: 'Foto tomada con el filtro de mariposas',
+          title: "Mi foto con filtro AR",
+          text: "Foto tomada con el filtro de mariposas",
         });
       } else {
         downloadBlob(blob, fileName);
       }
     } catch (err) {
       console.error(err);
-      alert('Ocurrió un error al guardar la foto.');
+      alert("Ocurrió un error al guardar la foto.");
     } finally {
       setIsSaving(false);
     }
@@ -177,7 +177,7 @@ export default function MindArFace() {
     if (!ready) return;
 
     const patch = () => {
-      const sceneEl = containerRef.current?.querySelector('a-scene') as any;
+      const sceneEl = containerRef.current?.querySelector("a-scene") as any;
       const renderer = sceneEl?.renderer;
       if (!renderer) return false;
 
@@ -192,7 +192,7 @@ export default function MindArFace() {
 
       if (gl) {
         // Algunos navegadores permiten cambiar este atributo post-init vía extensión
-        const ext = (gl as any).getExtension?.('WEBGL_lose_context');
+        const ext = (gl as any).getExtension?.("WEBGL_lose_context");
         if (ext) {
           // Recrear el contexto con preserveDrawingBuffer = true
           // A-Frame lo detecta y lo reinicia automáticamente
@@ -200,7 +200,9 @@ export default function MindArFace() {
           const attrs = gl.getContextAttributes?.();
           if (attrs && !attrs.preserveDrawingBuffer) {
             // No podemos recrear sin perder el estado — usar método alternativo
-            console.info('Usando captura manual por falta de preserveDrawingBuffer');
+            console.info(
+              "Usando captura manual por falta de preserveDrawingBuffer",
+            );
           }
         }
       }
@@ -239,7 +241,12 @@ export default function MindArFace() {
           ></a-asset-item>
         </a-assets>
 
-        <a-camera active="false" position="0 0 0"></a-camera>
+        <a-camera
+          active="false"
+          position="0 0 0"
+          look-controls="enabled: false"
+          wasd-controls="enabled: false"
+        ></a-camera>
 
         <a-light type="ambient" intensity="1"></a-light>
         <a-light type="directional" intensity="0.8" position="0 1 1"></a-light>
@@ -276,28 +283,28 @@ export default function MindArFace() {
       />
 
       <div
-      ref={containerRef}
-      style={{
-        width: '100dvw',
-        height: '100dvh',
-        overflow: 'hidden',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-      }}
-    >
+        ref={containerRef}
+        style={{
+          width: "100dvw",
+          height: "100dvh",
+          overflow: "hidden",
+          position: "fixed",
+          top: 0,
+          left: 0,
+        }}
+      >
         {ready ? (
           scene
         ) : (
           <div
             style={{
-              width: '100%',
-              height: '100%',
-              display: 'grid',
-              placeItems: 'center',
-              background: '#000',
-              color: '#fff',
-              fontFamily: 'sans-serif',
+              width: "100%",
+              height: "100%",
+              display: "grid",
+              placeItems: "center",
+              background: "#000",
+              color: "#fff",
+              fontFamily: "sans-serif",
             }}
           >
             Cargando Face Tracking...
